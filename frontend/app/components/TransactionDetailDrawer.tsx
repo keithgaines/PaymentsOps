@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import type { Transaction } from "../../lib/api";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import type { Transaction } from "../../lib/api";
 
-type Props = {
+type TransactionDetailDrawerProps = {
   transactions: Transaction[];
 };
 
-export function TransactionDetailDrawer({ transactions }: Props) {
+export function TransactionDetailDrawer({
+  transactions,
+}: TransactionDetailDrawerProps) {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
 
@@ -99,7 +101,39 @@ function TransactionDrawer({
   transaction: Transaction | null;
   onClose: () => void;
 }) {
-  if (!transaction) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!transaction) return;
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [transaction]);
+
+  useEffect(() => {
+    if (!transaction) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [transaction, onClose]);
+
+  if (!mounted || !transaction) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[9999]">
@@ -113,7 +147,7 @@ function TransactionDrawer({
       <aside
         role="dialog"
         aria-modal="true"
-        aria-labelledby="transaction-title"
+        aria-labelledby="transaction-drawer-title"
         className="absolute right-0 top-0 h-full w-full max-w-xl overflow-y-auto border-l border-slate-200 bg-white shadow-2xl"
       >
         <div className="sticky top-0 border-b border-slate-200 bg-white/95 px-6 py-5 backdrop-blur">
@@ -124,11 +158,22 @@ function TransactionDrawer({
               </p>
 
               <h2
-                id="transaction-title"
+                id="transaction-drawer-title"
                 className="mt-1 text-2xl font-semibold text-slate-900"
               >
                 {transaction.merchant?.name ?? "Unknown Merchant"}
               </h2>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <StatusBadge status={transaction.status} />
+                <RiskBadge riskLevel={transaction.merchant?.riskLevel} />
+
+                {transaction.chargeback && (
+                  <span className="inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                    Chargeback
+                  </span>
+                )}
+              </div>
             </div>
 
             <button
