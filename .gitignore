@@ -1,4 +1,17 @@
+# Node
 node_modules/
 .next/
 out/
-.env.local
+
+# .NET
+bin/
+obj/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
