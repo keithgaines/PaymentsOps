@@ -40,4 +40,31 @@ app.MapMerchantEndpoints();
 app.MapTransactionEndpoints();
 app.MapAnalyticsEndpoints();
 
+app.MapGet(
+    "/health",
+    (IConfiguration config, IWebHostEnvironment env) =>
+    {
+        return Results.Ok(
+            new
+            {
+                status = "ok",
+                environment = env.EnvironmentName,
+                hasConnectionString = !string.IsNullOrWhiteSpace(
+                    config.GetConnectionString("DefaultConnection")
+                ),
+            }
+        );
+    }
+);
+
+app.MapGet(
+    "/health/db",
+    async (AppDbContext db) =>
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+
+        return Results.Ok(new { status = "ok", canConnect });
+    }
+);
+
 app.Run();
