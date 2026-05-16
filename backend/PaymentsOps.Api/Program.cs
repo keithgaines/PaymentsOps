@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentsOps.Api.Data;
+using PaymentsOps.Api.Features.Analytics;
 using PaymentsOps.Api.Features.Merchants;
 using PaymentsOps.Api.Features.Transactions;
 
@@ -24,5 +25,6 @@ app.MapGet("/", () => Results.Ok(new { Service = "Payments Operations API", Stat
 
 app.MapMerchantEndpoints();
 app.MapTransactionEndpoints();
+app.MapAnalyticsEndpoints();
 
 app.Run();
